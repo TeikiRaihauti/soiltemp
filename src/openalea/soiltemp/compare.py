@@ -1,8 +1,8 @@
 from pathlib import Path
 import pandas as pd
 
-import standalone, model
-from model import na
+from openalea.soiltemp import standalone, model
+from openalea.soiltemp.model import na
 
 code2model = dict()
 code2model['APC']='APSIM_Campbell' # OK

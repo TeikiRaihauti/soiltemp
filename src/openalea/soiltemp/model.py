@@ -45,7 +45,7 @@ class APSIM_Campbell(Model):
         airPressure:float = 1010.0
         canopyHeight:float = 0.057
         instrumentHeight: float = 1.2
-        ES = 0.0
+        #ES = 0.0
         boundaryLayerConductanceSource:str = 'calc'
         netRadiationSource:str = 'calc'
         windSpeed:float = 3.0
@@ -154,7 +154,7 @@ class APSIM_Campbell(Model):
 
             waterBalance_Eos=wi.EOAD,# Daily Potential Evapotranspiration
             waterBalance_Eo=wi.EOAD, 
-            waterBalance_Es=ES, # TODO
+            waterBalance_Es=wi.ES, # REPLACE ES = 0 by the weather value
             waterBalance_Salb=c.albedo,
             pInitialValues=None, 
             DepthToConstantTemperature=CONSTANT_TEMPdepth,
@@ -309,7 +309,7 @@ class APSIM_Campbell(Model):
                 waterBalance_SW=SW,
                 waterBalance_Eos=wi.EOAD,# Daily Potential Evapotranspiration
                 waterBalance_Eo=wi.EOAD, 
-                waterBalance_Es=ES, # TODO
+                waterBalance_Es=wi.ES, # REPPLACE ES = 0 by the weather value
                 waterBalance_Salb=c.albedo,
                 InitialValues=InitialValues,
                 pInitialValues=None,

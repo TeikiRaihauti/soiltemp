@@ -42,12 +42,12 @@ from openalea.soiltemp import data
 # Treatment is one of SOIL_ID, WST_ID, AWC, LAID
 SOIL_IDs = ['SICL', 'SILO', 'SALO', 'SAND']
 WST_IDs = ['USGA', 'DEMU', 'COCA', 'FRLU', 'USMA', 'FRMO', 'CAQC']
-WST_IDs = ['FRMO']
+#WST_IDs = ['FRMO']
 
 AWCs = [0.0, 0.25, 0.5, 0.75, 1.0]
-AWCs = [0.0]
+#AWCs = [0.0]
 LAIDs = [0, 2, 7]
-LAIDs = [0]
+#LAIDs = [0]
 
 class OneTreatment:
     def __init__(self, trt, 
@@ -286,7 +286,7 @@ def simulate(weather, soil, AWC, albedo, XLAT, TAMP, TAV, LAI, nb_layers, *args,
         SALB=albedo,
         SRAD=wi.SRAD,
         ESP=wi.ESP,
-        ES=ES,
+        ES=wi.ES,
         EOAD=wi.EOAD,
         instrumentHeight=instrumentHeight, 
         THICK=THICK,

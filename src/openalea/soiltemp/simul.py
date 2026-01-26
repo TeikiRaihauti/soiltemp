@@ -1,20 +1,21 @@
 from pathlib import Path
 import pandas as pd
 
-import standalone, model, compare
-from standalone import SOIL_IDs, WST_IDs, AWCs, LAIDs
-from compare import code2model
+from openalea.soiltemp import standalone, model, compare
+from openalea.soiltemp.standalone import SOIL_IDs, WST_IDs, AWCs, LAIDs, Treatment
+from openalea.soiltemp.compare import code2model
 
-from model import na
+from openalea.soiltemp.model import na, Model
 from pathlib import Path
 
-trt=standalone.Treatment()
-models = model.Model.models()
+trt=Treatment()
+models = Model.models()
 code2M = dict((code, models[name]()) for code, name in code2model.items() if name in models)
 
 output_dir = Path('OutputData')
 output_monica = Path('OutputData')/'monica'
 output_simplace = Path('OutputData')/'simplace'
+output_apsim= Path('OutputData')/'apsim'
 
 def get_filename(weather_station, soil, water_content, lai, model_code):
     """ Return the filename for each simulation
@@ -101,6 +102,26 @@ def run_simplace(weather_station, soil, water_content, lai):
     #    failure +=1
     return failure
 
+def run_apsim(weather_station, soil, water_content, lai):
+    failure = 0
+    model_code = 'APC'
+    if code2model[model_code] not in models:
+        return 
+    fn = get_filename(weather_station, soil, water_content, lai, model_code)
+    if (output_apsim/fn).exists():
+        print(f'{fn} is already computed')
+        return
+    #try:
+    print(f'Run {weather_station, soil, water_content, lai, code2model[model_code]}')
+    simulate(weather_station, soil=soil, water_content=water_content, 
+        lai=lai, model_code=model_code,
+        nb_steps=-1, output_dir=output_apsim)
+    #except: 
+    #    print('#'*80)
+    #    print(f'ERROR : Run {weather_station, soil, water_content, lai, model_code}')    
+    #    failure +=1
+    return failure
+
 def main(i=0):
     ws = WST_IDs[i]
     for soil in SOIL_IDs:
@@ -121,6 +142,13 @@ def mainsim(i=0):
         for lai in LAIDs:
             for water_content in AWCs:
                 run_simplace(ws, soil, water_content, lai)
+
+def mainapsim(i=0):
+    ws = WST_IDs[i]
+    for soil in SOIL_IDs:
+        for lai in LAIDs:
+            for water_content in AWCs:
+                run_apsim(ws, soil, water_content, lai)
 
 
 
@@ -153,13 +181,13 @@ python -c 'from simul import mainmoc; mainmoc(5)'&
 python -c 'from simul import mainmoc; mainmoc(6)'&
 
 # run in a shell to use 7 proc
-python -c 'from simul import mainsim; mainsim(0)'&
-python -c 'from simul import mainsim; mainsim(1)'&
-python -c 'from simul import mainsim; mainsim(2)'&
-python -c 'from simul import mainsim; mainsim(3)'&
-python -c 'from simul import mainsim; mainsim(4)'&
-python -c 'from simul import mainsim; mainsim(5)'&
-python -c 'from simul import mainsim; mainsim(6)'&
+python -c 'from openalea.soiltemp.simul import mainapsim; mainapsim(0)'&
+python -c 'from openalea.soiltemp.simul import mainapsim; mainapsim(1)'&
+python -c 'from openalea.soiltemp.simul import mainapsim; mainapsim(2)'&
+python -c 'from openalea.soiltemp.simul import mainapsim; mainapsim(3)'&
+python -c 'from openalea.soiltemp.simul import mainapsim; mainapsim(4)'&
+python -c 'from openalea.soiltemp.simul import mainapsim; mainapsim(5)'&
+python -c 'from openalea.soiltemp.simul import mainapsim; mainapsim(6)'&
 
 """
 
