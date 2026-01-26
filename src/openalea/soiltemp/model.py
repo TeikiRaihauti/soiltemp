@@ -197,7 +197,7 @@ class APSIM_Campbell(Model):
             SALB=c.albedo,
             SRAD=wi.SRAD, #
             ESP=wi.ESP, #
-            ES=ES, 
+            ES=wi.ES, 
             EOAD=wi.EOAD, #
             instrumentHeight=instrumentHeight, 
             # soil
