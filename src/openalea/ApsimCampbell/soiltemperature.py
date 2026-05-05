@@ -1168,11 +1168,11 @@ def model_soiltemperature(weather_MinT:float,
     (soilWater, instrumentHeight, canopyHeight) = getOtherVariables(numLayers, numNodes, soilWater, instrumentHeight, soilRoughnessHeight, waterBalance_SW, microClimate_CanopyHeight, canopyHeight)
     if doInitialisationStuff:
         if ValuesInArray(InitialValues, MissingValue):
-            soilTemp = array('f', [0.0]*(numNodes + 1 + 1))
+            soilTemp = array('d', [0.0]*(numNodes + 1 + 1))
             soilTemp[topsoilNode:topsoilNode + len(InitialValues)] = InitialValues[0:0 + len(InitialValues)]
         else:
             soilTemp = calcSoilTemperature(soilTemp, weather_Tav, clock_Today_DayOfYear, surfaceNode, numNodes, weather_Amp, thickness, weather_Latitude)
-            InitialValues = array('f', [0.0]*(numLayers))
+            InitialValues = array('d', [0.0]*(numLayers))
             InitialValues[0:0 + numLayers] = soilTemp[topsoilNode:topsoilNode + numLayers]
         soilTemp[airNode] = weather_MeanT
         soilTemp[surfaceNode] = calcSurfaceTemperature(weather_MeanT, weather_MaxT, waterBalance_Salb, weather_Radn)
@@ -1241,7 +1241,7 @@ def getProfileVariables(heatStorage:'Array[float]',
     oldSoilWater:'array[float]'
     numLayers = len(physical_Thickness)
     numNodes = numLayers + numPhantomNodes
-    thickness = array('f', [0.0]*(numLayers + numPhantomNodes + 1))
+    thickness = array('d', [0.0]*(numLayers + numPhantomNodes + 1))
     thickness[1:1 + len(physical_Thickness)] = physical_Thickness
     belowProfileDepth = max(DepthToConstantTemperature - Sum(thickness, 1, numLayers, MissingValue), 1000.0)
     thicknessForPhantomNodes = belowProfileDepth * 2.0 / numPhantomNodes
@@ -1249,7 +1249,7 @@ def getProfileVariables(heatStorage:'Array[float]',
     for i in range(firstPhantomNode , firstPhantomNode + numPhantomNodes , 1):
         thickness[i] = thicknessForPhantomNodes
     oldDepth = nodeDepth
-    nodeDepth = array('f', [0.0]*(numNodes + 1 + 1))
+    nodeDepth = array('d', [0.0]*(numNodes + 1 + 1))
     if oldDepth is not None:
         nodeDepth[0:min(numNodes + 1 + 1, len(oldDepth))] = oldDepth[0:min(numNodes + 1 + 1, len(oldDepth))]
     nodeDepth[airNode] = 0.0
@@ -1258,7 +1258,7 @@ def getProfileVariables(heatStorage:'Array[float]',
     for node in range(topsoilNode , numNodes + 1 , 1):
         nodeDepth[node + 1] = (Sum(thickness, 1, node - 1, MissingValue) + (0.5 * thickness[node])) / 1000.0
     oldBulkDensity = bulkDensity
-    bulkDensity = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
+    bulkDensity = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
     if oldBulkDensity is not None:
         bulkDensity[0:min(numLayers + 1 + numPhantomNodes, len(oldBulkDensity))] = oldBulkDensity[0:min(numLayers + 1 + numPhantomNodes, len(oldBulkDensity))]
     bulkDensity[1:1 + len(physical_BD)] = physical_BD
@@ -1266,7 +1266,7 @@ def getProfileVariables(heatStorage:'Array[float]',
     for layer in range(numLayers + 1 , numLayers + numPhantomNodes + 1 , 1):
         bulkDensity[layer] = bulkDensity[numLayers]
     oldSoilWater = soilWater
-    soilWater = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
+    soilWater = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
     if oldSoilWater is not None:
         soilWater[0:min(numLayers + 1 + numPhantomNodes, len(oldSoilWater))] = oldSoilWater[0:min(numLayers + 1 + numPhantomNodes, len(oldSoilWater))]
     if waterBalance_SW is not None:
@@ -1274,41 +1274,41 @@ def getProfileVariables(heatStorage:'Array[float]',
             soilWater[layer] = Divide(waterBalance_SW[(layer - 1)] * thickness[(layer - 1)], thickness[layer], float(0))
         for layer in range(numLayers + 1 , numLayers + numPhantomNodes + 1 , 1):
             soilWater[layer] = soilWater[numLayers]
-    carbon = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
+    carbon = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
     for layer in range(1 , numLayers + 1 , 1):
         carbon[layer] = organic_Carbon[layer - 1]
     for layer in range(numLayers + 1 , numLayers + numPhantomNodes + 1 , 1):
         carbon[layer] = carbon[numLayers]
-    rocks = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
+    rocks = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
     for layer in range(1 , numLayers + 1 , 1):
         rocks[layer] = physical_Rocks[layer - 1]
     for layer in range(numLayers + 1 , numLayers + numPhantomNodes + 1 , 1):
         rocks[layer] = rocks[numLayers]
-    sand = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
+    sand = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
     for layer in range(1 , numLayers + 1 , 1):
         sand[layer] = physical_ParticleSizeSand[layer - 1]
     for layer in range(numLayers + 1 , numLayers + numPhantomNodes + 1 , 1):
         sand[layer] = sand[numLayers]
-    silt = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
+    silt = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
     for layer in range(1 , numLayers + 1 , 1):
         silt[layer] = physical_ParticleSizeSilt[layer - 1]
     for layer in range(numLayers + 1 , numLayers + numPhantomNodes + 1 , 1):
         silt[layer] = silt[numLayers]
-    clay = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
+    clay = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
     for layer in range(1 , numLayers + 1 , 1):
         clay[layer] = physical_ParticleSizeClay[layer - 1]
     for layer in range(numLayers + 1 , numLayers + numPhantomNodes + 1 , 1):
         clay[layer] = clay[numLayers]
-    maxSoilTemp = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
-    minSoilTemp = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
-    aveSoilTemp = array('f', [0.0]*(numLayers + 1 + numPhantomNodes))
-    volSpecHeatSoil = array('f', [0.0]*(numNodes + 1))
-    soilTemp = array('f', [0.0]*(numNodes + 1 + 1))
-    morningSoilTemp = array('f', [0.0]*(numNodes + 1 + 1))
-    newTemperature = array('f', [0.0]*(numNodes + 1 + 1))
-    thermalConductivity = array('f', [0.0]*(numNodes + 1))
-    heatStorage = array('f', [0.0]*(numNodes + 1))
-    thermalConductance = array('f', [0.0]*(numNodes + 1 + 1))
+    maxSoilTemp = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
+    minSoilTemp = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
+    aveSoilTemp = array('d', [0.0]*(numLayers + 1 + numPhantomNodes))
+    volSpecHeatSoil = array('d', [0.0]*(numNodes + 1))
+    soilTemp = array('d', [0.0]*(numNodes + 1 + 1))
+    morningSoilTemp = array('d', [0.0]*(numNodes + 1 + 1))
+    newTemperature = array('d', [0.0]*(numNodes + 1 + 1))
+    thermalConductivity = array('d', [0.0]*(numNodes + 1))
+    heatStorage = array('d', [0.0]*(numNodes + 1))
+    thermalConductance = array('d', [0.0]*(numNodes + 1 + 1))
     return (heatStorage, minSoilTemp, bulkDensity, maxSoilTemp, nodeDepth, newTemperature, soilWater, thermalConductance, thermalConductivity, sand, carbon, thickness, rocks, clay, soilTemp, silt, volSpecHeatSoil, aveSoilTemp, morningSoilTemp, numNodes, numLayers)
 
 def doThermalConductivityCoeffs(thermCondPar2:'Array[float]',
@@ -1326,19 +1326,19 @@ def doThermalConductivityCoeffs(thermCondPar2:'Array[float]',
     oldGC4:'array[float]'
     element:int
     oldGC1 = thermCondPar1
-    thermCondPar1 = array('f', [0.0]*(numNodes + 1))
+    thermCondPar1 = array('d', [0.0]*(numNodes + 1))
     if oldGC1 is not None:
         thermCondPar1[0:min(numNodes + 1, len(oldGC1))] = oldGC1[0:min(numNodes + 1, len(oldGC1))]
     oldGC2 = thermCondPar2
-    thermCondPar2 = array('f', [0.0]*(numNodes + 1))
+    thermCondPar2 = array('d', [0.0]*(numNodes + 1))
     if oldGC2 is not None:
         thermCondPar2[0:min(numNodes + 1, len(oldGC2))] = oldGC2[0:min(numNodes + 1, len(oldGC2))]
     oldGC3 = thermCondPar3
-    thermCondPar3 = array('f', [0.0]*(numNodes + 1))
+    thermCondPar3 = array('d', [0.0]*(numNodes + 1))
     if oldGC3 is not None:
         thermCondPar3[0:min(numNodes + 1, len(oldGC3))] = oldGC3[0:min(numNodes + 1, len(oldGC3))]
     oldGC4 = thermCondPar4
-    thermCondPar4 = array('f', [0.0]*(numNodes + 1))
+    thermCondPar4 = array('d', [0.0]*(numNodes + 1))
     if oldGC4 is not None:
         thermCondPar4[0:min(numNodes + 1, len(oldGC4))] = oldGC4[0:min(numNodes + 1, len(oldGC4))]
     for layer in range(1 , numLayers + 1 + 1 , 1):
@@ -1694,10 +1694,10 @@ def doThomas(newTemps:'Array[float]',
          nu:float,
          volSpecHeatSoil:'Array[float]'):
     node:int
-    a:'array[float]' = array('f',[0.0]*(numNodes + 1 + 1))
-    b:'array[float]' = array('f',[0.0]*(numNodes + 1))
-    c:'array[float]' = array('f',[0.0]*(numNodes + 1))
-    d:'array[float]' = array('f',[0.0]*(numNodes + 1))
+    a:'array[float]' = array('d',[0.0]*(numNodes + 1 + 1))
+    b:'array[float]' = array('d',[0.0]*(numNodes + 1))
+    c:'array[float]' = array('d',[0.0]*(numNodes + 1))
+    d:'array[float]' = array('d',[0.0]*(numNodes + 1))
     volumeOfSoilAtNode:float
     elementLength:float
     g:float
@@ -1877,7 +1877,7 @@ def doThermalConductivity(soilConstituentNames:'Array[str]',
          MissingValue:float):
     node:int
     constituentName:str
-    thermCondLayers:'array[float]' = array('f',[0.0]*(numNodes + 1))
+    thermCondLayers:'array[float]' = array('d',[0.0]*(numNodes + 1))
     numerator:float
     denominator:float
     shapeFactorConstituent:float
@@ -1908,7 +1908,7 @@ def doVolumetricSpecificHeat(soilConstituentNames:'Array[str]',
          MissingValue:float):
     node:int
     constituentName:str
-    volspecHeatSoil_:'array[float]' = array('f',[0.0]*(numNodes + 1))
+    volspecHeatSoil_:'array[float]' = array('d',[0.0]*(numNodes + 1))
     for node in range(1 , numNodes + 1 , 1):
         volspecHeatSoil_[node] = float(0)
         for constituentName in soilConstituentNames:
@@ -1937,7 +1937,7 @@ def doNetRadiation(solarRadn:'Array[float]',
     solarConstant:float
     solarDeclination:float
     cD:float
-    m1:'array[float]' = array('f',[0.0]*(ITERATIONSperDAY + 1))
+    m1:'array[float]' = array('d',[0.0]*(ITERATIONSperDAY + 1))
     m1Tot:float
     psr:float
     fr:float
@@ -2022,7 +2022,7 @@ def doProcess(timeOfDaySecs:float,
     interactionsPerDay:int
     cva:float
     cloudFr:float
-    solarRadn:'array[float]' = array('f',[0.0]*(49))
+    solarRadn:'array[float]' = array('d',[0.0]*(49))
     interactionsPerDay = 48
     cva = 0.0
     cloudFr = 0.0
@@ -2059,7 +2059,7 @@ def doProcess(timeOfDaySecs:float,
 
 def ToCumThickness(Thickness:'Array[float]'):
     Layer:int
-    CumThickness:'array[float]' = array('f',[0.0]*(len(Thickness)))
+    CumThickness:'array[float]' = array('d',[0.0]*(len(Thickness)))
     if len(Thickness) > 0:
         CumThickness[0] = Thickness[0]
         for Layer in range(1 , len(Thickness) , 1):
@@ -2080,7 +2080,7 @@ def calcSoilTemperature(soilTempIO:'Array[float]',
     dh:float
     zd:float
     offset:float
-    soilTemp:'array[float]' = array('f',[0.0]*(numNodes + 1 + 1))
+    soilTemp:'array[float]' = array('d',[0.0]*(numNodes + 1 + 1))
     cumulativeDepth = ToCumThickness(thickness)
     w = 2 * pi / (365.25 * 24 * 3600)
     dh = 0.6

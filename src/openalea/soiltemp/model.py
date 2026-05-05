@@ -43,9 +43,8 @@ class APSIM_Campbell(Model):
         # Parameters not in the config
         CONSTANT_TEMPdepth:float = 10000.0
         airPressure:float = 1010.0
-        canopyHeight:float = 0.057
+        canopyHeight:float = 0.0
         instrumentHeight: float = 1.2
-        ES = 0.0
         boundaryLayerConductanceSource:str = 'calc'
         netRadiationSource:str = 'calc'
         windSpeed:float = 3.0
@@ -55,7 +54,7 @@ class APSIM_Campbell(Model):
         SURFACEnode = 1
         TOPSOILnode = 2
         NUM_PHANTOM_NODES = 5
-        soilRoughnessHeight = 0.057
+        soilRoughnessHeight = 0.0
         pom:float = 1.3
         
         # New variables
@@ -83,14 +82,13 @@ class APSIM_Campbell(Model):
         # soil unit
         soil.SLLB *= 0.01
         soil.THICK *= 10
-        soil.SVSE *= 10**6
 
         soilId = c.soil_id
         soil['SLROCK'] = 0.
 
         if(soilId == "SICL"):
-            sand = 15.0
-            silt = 35.
+            sand = 5.0
+            silt = 45.
         elif (soilId == "SILO"):
             sand = 30.0
             silt = 60.0
@@ -98,31 +96,23 @@ class APSIM_Campbell(Model):
             sand = 60.0
             silt = 30.0
         elif (soilId == "SAND"):
-            sand = 85.0
-            silt = 10.0
+            sand = 90.0
+            silt = 5.0
 
         soil['SLSAND'] = sand
         soil['SLSILT'] = silt
 
-        def to_array(l):
-            """ Convert a list to an array, or return the array if already one """
-            if isinstance(l, array):
-                return l
-            else:
-                return array('f', l.tolist())
-
         SLLT = soil.SLLT.tolist()
         SLLB = soil.SLLB.tolist()
-        THICK=array('f', soil.THICK.to_list())
-        BD=to_array(soil.SLBDM)
-        SLCARB=to_array(soil.SLOC) 
-        CLAY=to_array(soil.SLCLY)
-        SLROCK=to_array(soil.SLROCK) 
-        SLSILT=to_array(soil.SLSILT) 
-        SLSAND=to_array(soil.SLSAND)
-        SLOC = to_array(soil.SLOC) # Organic Carbon
+        THICK=array('d', soil.THICK.to_list())
+        BD=array('d', soil.SLBDM.to_list())
+        CLAY=array('d', soil.SLCLY.to_list())
+        SLROCK=array('d', soil.SLROCK.to_list()) 
+        SLSILT=array('d', soil.SLSILT.to_list()) 
+        SLSAND=array('d', soil.SLSAND.to_list())
+        SLOC = array('d', soil.SLOC.to_list()) # Organic Carbon
 
-        SW=to_array(soil_water)
+        SW=array('d', soil_water.to_list())
 
         _wi = dict(config.weather.iloc[0])
         WeatherRecord = dataclasses.make_dataclass('WeatherRecord',list(config.weather.columns) )
@@ -149,12 +139,12 @@ class APSIM_Campbell(Model):
             physical_ParticleSizeSand=SLSAND,
             physical_ParticleSizeSilt=SLSILT,
             physical_ParticleSizeClay=CLAY,
-            organic_Carbon=SLCARB,
+            organic_Carbon=SLOC,
             waterBalance_SW=SW,
 
-            waterBalance_Eos=wi.EOAD,# Daily Potential Evapotranspiration
+            waterBalance_Eos=wi.ESP,# Daily Potential Evapotranspiration
             waterBalance_Eo=wi.EOAD, 
-            waterBalance_Es=ES, # TODO
+            waterBalance_Es=wi.ES, # REPLACE ES = 0 by the weather value
             waterBalance_Salb=c.albedo,
             pInitialValues=None, 
             DepthToConstantTemperature=CONSTANT_TEMPdepth,
@@ -182,38 +172,7 @@ class APSIM_Campbell(Model):
             netRadiationSource=netRadiationSource,
             MissingValue=MissingValue, 
             soilConstituentNames= soilConstituentNames,
-            )
-        """
-            NLAYR=c.nb_layers,
-            CONSTANT_TEMPdepth=CONSTANT_TEMPdepth, 
-            T2M=wi.T2M, #
-            TMAX=wi.TMAX, #
-            TMIN=wi.TMIN, #
-            TAV=c.TAV,
-            TAMP=c.TAMP,
-            XLAT=c.XLAT,
-            DOY=wi.DATE.dayofyear, #
-            canopyHeight=canopyHeight,
-            SALB=c.albedo,
-            SRAD=wi.SRAD, #
-            ESP=wi.ESP, #
-            ES=ES, 
-            EOAD=wi.EOAD, #
-            instrumentHeight=instrumentHeight, 
-            # soil
-            THICK=THICK, 
-            BD=BD, 
-            SLCARB=SLCARB, 
-            CLAY=CLAY, 
-            SLROCK=SLROCK, 
-            SLSILT=SLSILT, 
-            SLSAND=SLSAND,
-            SW=SW,     
-            airPressure=airPressure, 
-            boundaryLayerConductanceSource=boundaryLayerConductanceSource,
-            netRadiationSource=netRadiationSource, 
-            windSpeed=windSpeed)    
-        """    
+        )
         (InitialValues, 
          doInitialisationStuff, 
          internalTimeStep, 
@@ -307,9 +266,9 @@ class APSIM_Campbell(Model):
                 physical_ParticleSizeClay=CLAY,
                 organic_Carbon=SLOC,
                 waterBalance_SW=SW,
-                waterBalance_Eos=wi.EOAD,# Daily Potential Evapotranspiration
-                waterBalance_Eo=wi.EOAD, 
-                waterBalance_Es=ES, # TODO
+                waterBalance_Eos=wi.ESP, # Daily Potential Evaporation
+                waterBalance_Eo=wi.EOAD, # Daily Potential Evapotranspiration
+                waterBalance_Es=wi.ES, # REPPLACE ES = 0 by the weather value
                 waterBalance_Salb=c.albedo,
                 InitialValues=InitialValues,
                 pInitialValues=None,
@@ -362,7 +321,7 @@ class APSIM_Campbell(Model):
                 clay=clay,
                 soilRoughnessHeight=soilRoughnessHeight,
                 instrumentHeight=instrumentHeight,
-                netRadiation=wi.SRAD,
+                netRadiation=netRadiation,
                 canopyHeight=canopyHeight,
                 instrumHeight=instrumHeight,
                 nu=nu,
@@ -395,256 +354,6 @@ class APSIM_Campbell(Model):
         
         return df
             
-#######################################################################################
-# APSIM Campbell
-from openalea.Campbell.campbell import init_campbell, model_campbell
-
-class PyCampbell(Model):
-    """ APSIM implementation of the Cambell model.
-    """
-
-    def run(self, config, nb_steps=0):
-
-        c = config
-        soil = c.soil
-        weather = c.weather
-        
-        # Parameters not in the config
-        CONSTANT_TEMPdepth:float = 10000.0
-        airPressure:float = 1010.0
-        canopyHeight:float = 0.057
-        instrumentHeight: float = 1.2
-        ES = 0.0
-        boundaryLayerConductanceSource:str = 'calc'
-        netRadiationSource:str = 'calc'
-        windSpeed:float = 3.0
-
-        # variable
-        soil_water = soil.SLLL + c.AWC * (soil.SLDUL - soil.SLLL)
-
-        # Soil parameter
-
-        # soil unit
-        soil.SLLB *= 0.01
-        soil.THICK *= 10
-        soil.SVSE *= 10**6
-
-        soilId = c.soil_id
-        soil['SLROCK'] = 0.
-
-        if(soilId == "SICL"):
-            sand = 15.0;
-            silt = 35.0;
-        elif (soilId == "SILO"):
-            sand = 30.0;
-            silt = 60.0;
-        elif (soilId == "SALO"):
-            sand = 60.0;
-            silt = 30.0;
-        elif (soilId == "SAND"):
-            sand = 85.0;
-            silt = 10.0;
-
-        soil['SLSAND'] = sand
-        soil['SLSILT'] = silt
-
-
-        SLLT = soil.SLLT.tolist()
-        SLLB = soil.SLLB.tolist()
-        THICK=soil.THICK.tolist()
-        BD=soil.SLBDM.tolist()
-        SLCARB=soil.SLOC.tolist() 
-        CLAY=soil.SLCLY.tolist()
-        SLROCK=soil.SLROCK.tolist() 
-        SLSILT=soil.SLSILT.tolist() 
-        SLSAND=soil.SLSAND.tolist()
-        SW=soil_water.tolist()
-
-        _wi = dict(config.weather.iloc[0])
-        WeatherRecord = dataclasses.make_dataclass('WeatherRecord',list(config.weather.columns) )
-        wi = WeatherRecord(**_wi) 
-
-        # init
-        data_init = init_campbell(
-            NLAYR=c.nb_layers,
-            CONSTANT_TEMPdepth=CONSTANT_TEMPdepth, 
-            T2M=wi.T2M, #
-            TMAX=wi.TMAX, #
-            TMIN=wi.TMIN, #
-            TAV=c.TAV,
-            TAMP=c.TAMP,
-            XLAT=c.XLAT,
-            DOY=wi.DATE.dayofyear, #
-            canopyHeight=canopyHeight,
-            SALB=c.albedo,
-            SRAD=wi.SRAD, #
-            ESP=wi.ESP, #
-            ES=ES, 
-            EOAD=wi.EOAD, #
-            instrumentHeight=instrumentHeight, 
-            # soil
-            THICK=THICK, 
-            BD=BD, 
-            SLCARB=SLCARB, 
-            CLAY=CLAY, 
-            SLROCK=SLROCK, 
-            SLSILT=SLSILT, 
-            SLSAND=SLSAND,
-            SW=SW,     
-            airPressure=airPressure, 
-            boundaryLayerConductanceSource=boundaryLayerConductanceSource,
-            netRadiationSource=netRadiationSource, 
-            windSpeed=windSpeed)        
-        
-        (thickness, 
-        depth, 
-        bulkDensity, 
-        clay, 
-        soilWater, 
-        soilTemp, 
-        newTemperature, 
-        minSoilTemp, 
-        maxSoilTemp, 
-        aveSoilTemp, 
-        morningSoilTemp,
-        thermalCondPar1, thermalCondPar2, thermalCondPar3, thermalCondPar4, 
-        thermalConductivity, thermalConductance, 
-        heatStorage, volSpecHeatSoil, 
-        maxTempYesterday,
-        minTempYesterday, 
-        carbon, rocks, silt, sand, 
-        boundaryLayerConductance) = data_init
-
-
-
-        # Outputs
-        columns = "Date SLLT SLLB TSLD TSLX TSLN Layer".split()
-        Dates = []
-        SLLTs = []
-        SLLBs = []
-        TSLDs = []
-        TSLXs = []
-        TSLNs = []
-        Layers = []
-
-        count = 0
-        
-        for i, _wi in weather.iterrows():
-            if count == nb_steps:
-                break
-            else:
-                count += 1
-
-            wi = WeatherRecord(**_wi) 
-
-            # Call the model
-            (soilTemp, 
-            minSoilTemp, 
-            maxSoilTemp, 
-            aveSoilTemp,
-            morningSoilTemp, 
-            newTemperature, 
-            maxTempYesterday, 
-            minTempYesterday, 
-            thermalCondPar1, thermalCondPar2, thermalCondPar3, thermalCondPar4, 
-            thermalConductivity, thermalConductance, 
-            heatStorage, 
-            volSpecHeatSoil, 
-            boundaryLayerConductance, 
-            thickness, 
-            depth, 
-            bulkDensity, 
-            soilWater, 
-            clay,
-            rocks, 
-            carbon, 
-            sand, 
-            silt) = model_campbell(
-                # idem from init
-                NLAYR=c.nb_layers,
-                CONSTANT_TEMPdepth=CONSTANT_TEMPdepth, 
-                T2M=wi.T2M, 
-                TMAX=wi.TMAX, 
-                TMIN=wi.TMIN,
-                TAV=c.TAV, 
-                TAMP=c.TAMP, 
-                XLAT=c.XLAT,
-                DOY=wi.DATE.dayofyear,
-                canopyHeight=canopyHeight, 
-                SALB=c.albedo,
-                SRAD=wi.SRAD, 
-                ESP=wi.ESP, 
-                ES=ES, 
-                EOAD=wi.EOAD,
-                instrumentHeight=instrumentHeight,
-
-                # soil
-                THICK=THICK, 
-                BD=BD, 
-                SLCARB=SLCARB, 
-                CLAY=CLAY, 
-                SLROCK=SLROCK, 
-                SLSILT=SLSILT, 
-                SLSAND=SLSAND,
-                SW=SW,     
-
-                # APSIM soil internal variable 
-                THICKApsim=thickness, 
-                BDApsim=bulkDensity, 
-                CLAYApsim=clay, 
-                SLROCKApsim=rocks, 
-                SLSILTApsim=silt, 
-                SLSANDApsim=sand, 
-                SWApsim=soilWater,
-                DEPTHApsim =depth, 
-                SLCARBApsim=carbon, 
-
-                soilTemp=soilTemp, 
-                minSoilTemp=minSoilTemp, 
-                maxSoilTemp=maxSoilTemp, 
-                aveSoilTemp=aveSoilTemp,
-                morningSoilTemp=morningSoilTemp, 
-                newTemperature=newTemperature, 
-                maxTempYesterday=maxTempYesterday, 
-                minTempYesterday=minTempYesterday, 
-                thermalCondPar1=thermalCondPar1,
-                thermalCondPar2=thermalCondPar2, 
-                thermalCondPar3=thermalCondPar3, 
-                thermalCondPar4=thermalCondPar4, 
-                thermalConductivity=thermalConductivity, 
-                thermalConductance=thermalConductance, 
-                heatStorage=heatStorage, 
-                volSpecHeatSoil=volSpecHeatSoil, 
-                _boundaryLayerConductance=boundaryLayerConductance, 
-                
-                # parameters
-                airPressure=airPressure, 
-                boundaryLayerConductanceSource=boundaryLayerConductanceSource,
-                netRadiationSource=netRadiationSource, windSpeed=windSpeed
-                ) 
-            
-            # Store the outputs
-            #date_formattee = wi.DATE.strftime("%Y-%m-%d")
-            #Dates.append(wi.DATE.dayofyear); 
-            Dates.append(wi.DATE); 
-            SLLTs.append(0); SLLBs.append(0); TSLDs.append(aveSoilTemp[1]); TSLXs.append(maxSoilTemp[1]); TSLNs.append(minSoilTemp[1]); Layers.append(0)
-            for j in range(2, c.nb_layers+2):
-                #Dates.append(wi.DATE.dayofyear); 
-                Dates.append(wi.DATE); 
-                SLLTs.append(int(SLLT[j-2])); SLLBs.append(int(SLLB[j-2]*100)); TSLDs.append(aveSoilTemp[j]); TSLXs.append(maxSoilTemp[j]); TSLNs.append(minSoilTemp[j]); Layers.append(j-1)
- 
-        df = pd.DataFrame( OrderedDict(
-                Date = Dates,
-                SLLT = SLLTs,
-                SLLB = SLLBs,
-                TSLD = TSLDs,
-                TSLX = TSLXs,
-                TSLN = TSLNs,
-                Layer =Layers            
-                ),
-                columns=columns)
-        
-        return df
 #######################################################################################
 # DSSAT EPIC ST
 # TODO Debug : only 3 layers are different

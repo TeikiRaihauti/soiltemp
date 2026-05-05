@@ -5,7 +5,7 @@ from math import *
 from typing import *
 from datetime import datetime
 
-from .soiltemperature import model_soiltemperature, init_soiltemperature
+from ApsimCampbell.soiltemperature import model_soiltemperature, init_soiltemperature
 
 #%%CyML Model Begin%%
 def model_soiltemp(netRadiation:float,
